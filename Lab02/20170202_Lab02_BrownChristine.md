@@ -46,7 +46,7 @@ main="Brownian Motion Made with saveGif"  )
         ani.height = 800)
 ```
 
-![](https://github.com/R-Class/all-labs-ddmii-christine-brown/tree/master/Lab01/brownian_motion_1.gif?raw=true "Brownian Motion 1")
+![](https://github.com/R-Class/all-labs-ddmii-christine-brown/blob/master/Lab02/brownian_motion_1.gif "Brownian Motion 1")
 
 ### Animate using im.convert
 
@@ -87,4 +87,4 @@ dir()
 unlink( "sample*.png")
 ```
 
-![](https://github.com/R-Class/all-labs-ddmii-christine-brown/tree/master/Lab01/brownian_motion_2.gif?raw=true "Brownian Motion 2")
+![](https://github.com/R-Class/all-labs-ddmii-christine-brown/blob/master/Lab02/brownian_motion_2.gif "Brownian Motion 2")
