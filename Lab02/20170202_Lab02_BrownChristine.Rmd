@@ -1,0 +1,88 @@
+---
+title: "Lab 02 MD DDMII"
+author: "Christine Brown"
+date: "February 2, 2017"
+output: github_document
+---
+###Load Packages
+```{r, warning = F , message = F }
+library(animation)
+```
+
+
+###Prepare Data
+```{r, warning = F , message = F }
+#Create Random, Normally Distributed X and Y Variables that Cumulatively Sum
+x <- cumsum( rnorm(100) )
+y <- cumsum( rnorm(100) )
+
+
+#Determine Maximum and Minimum X and y Values
+max.x <- max(x)
+min.x <- min(x)
+max.y <- max(y)
+min.y <- min(y)
+```
+
+###Animate using saveGif
+```{r, eval=F }
+#eval=F means that code will print but not be run
+
+
+#set loop that animates
+
+saveGIF({
+         for( i in 5:100 )
+{
+plot( x[i], y[i], pch=19, col="red", cex=2,
+xlim=c(min.x,max.x), ylim=c(min.y,max.y),
+main="Brownian Motion Made with saveGif"  )
+}
+},
+        movie.name = "brownian_motion_1.gif",
+        interval = .1,
+        ani.width = 800,
+        ani.height = 800)
+```
+
+![](https://github.com/R-Class/all-labs-ddmii-christine-brown/tree/master/Lab01/brownian_motion_1.gif?raw=true "Brownian Motion 1")
+
+###Animate using im.convert
+```{r, eval=F }
+#set naming convention and image size
+
+png( "sample%03d.png", width=800, height=600 )
+
+
+#set loop to create png files
+
+for( i in 5:100 )
+{
+plot( x[i], y[i], pch=19, col="red", cex=2,
+      xlim=c(min.x,max.x), ylim=c(min.y,max.y),
+      main="Brownian Motion Made with im.convert"  )
+}                                              
+
+
+#stop making png files
+
+dev.off()                                      
+
+
+#set conversion options
+
+ani.options( interval=0, nmax = 2000 )
+
+
+#match all files with a wildcard *
+
+im.convert( "sample*.png", output = "brownian_motion_2.gif" )
+
+
+#delete all temporary PNG files
+
+dir()
+unlink( "sample*.png")
+```
+
+![](https://github.com/R-Class/all-labs-ddmii-christine-brown/tree/master/Lab01/brownian_motion_2.gif?raw=true "Brownian Motion 2")
