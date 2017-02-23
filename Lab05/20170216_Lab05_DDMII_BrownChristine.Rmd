@@ -1,0 +1,10 @@
+---
+title: "Lab 5 DDMII"
+author: "Christine Brown"
+date: "February 22, 2017"
+output: github_document
+---
+
+``````{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,  warning = F , message = F)
+```
