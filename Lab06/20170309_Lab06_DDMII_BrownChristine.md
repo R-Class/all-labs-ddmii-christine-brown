@@ -1,15 +1,9 @@
----
-title: "20170309-Lab06-DDMII"
-author: "Christine Brown"
-date: "March 9, 2017"
-output: github_document
----
+20170309-Lab06-DDMII
+================
+Christine Brown
+March 9, 2017
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE,  warning = F , message = F)
-```
-
-```{r}
+``` r
 #Load Packages
 library( maptools )
 library( raster )
@@ -67,3 +61,5 @@ buff1 <- gUnaryUnion( buff1, id = NULL )
 buff1_clipped <- gClip(buff1, b)
 plot(buff1_clipped, border="indianred", lwd=.5, add=T)
 ```
+
+![](20170309_Lab06_DDMII_BrownChristine_files/figure-markdown_github/unnamed-chunk-1-1.png)
