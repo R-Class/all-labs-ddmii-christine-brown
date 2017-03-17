@@ -9,6 +9,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE,  warning = F , message = F)
 ```
 
+###Load Packages
 ```{r}
 setwd("C:/Users/brown/Documents/Grad School/Fall 16/DDMII/lab5")
 library( censusapi )
@@ -23,14 +24,7 @@ library( sp )
 censuskey <- "5a1a01fa6496e71097aa2d4a066bed72117c8069"
 ```
 
-
-Create a "research database" of home values in Syracuse
-1. Start with the dataset of home prices and assets collected from Zillow
-2. Add a census tracts FIPS ID to each home (spatial join to census tracts)
-3. Add census data to each home
-4. Aggregate crimes by census tract (spatial join) and add to the dataset
-
-Get Data
+###Get Data
 ```{r}
 #Get Data
 home.val <- read.csv("https://raw.githubusercontent.com/lecy/hedonic-prices/master/Data/Housing%20Price%20In-Class%20Exercise%20(Responses).csv", stringsAsFactors=FALSE)
@@ -71,12 +65,47 @@ coordinates <- suppressMessages(geocode( home.val$full_address, messaging=F ))
 home.val2 <- cbind(home.val, coordinates)
 
 #get census tract information
-syr <- readShapePoly( fn="tl_2010_36067_tract10", proj4string=CRS("+proj=longlat +datum=WGS84") )
+onondaga <- readShapePoly( fn="tl_2010_36067_tract10", proj4string=CRS("+proj=longlat +datum=WGS84") )
 
 #join census tract inforamtion with homes
 coordinates_SP <- SpatialPoints(coordinates, proj4string=CRS("+proj=longlat +datum=WGS84") )
-poly.matched <- over(coordinates_SP, syr )
+poly.matched <- over(coordinates_SP, onondaga )
 houses.data <- cbind( home.val2, poly.matched )
 
+#get census information
+dat.census <- getCensus(name="acs5", vintage=2015, key=censuskey,
+                        vars=c( "B01001_001E", "B19013_001E", "B19301_001E", "B22003_002E","B01001B_001E",
+                                "B23025_005E", "B17001_002E"),
+                        region="tract:*", regionin="state:36+county:067")
+
+#rename census variables
+names(dat.census) <- c( "state", "county", "tract", "total_pop", "med_hh_inc",
+                        "pc_inc", "hh_snap", "black", "unemployed", "below_poverty" )
+
+#create pasted geoid to match with the houses.data
+dat.census <- mutate( dat.census, GEOID=paste( state, county, tract, sep="" ) )
+
+#load spatial data
+download.file("ftp://ftp2.census.gov/geo/tiger/TIGER2010/TRACT/2010/tl_2010_36067_tract10.zip", "onondaga census tracts.zip" )
+unzip( "onondaga census tracts.zip" )
+file.remove( "onondaga census tracts.zip" )
+syr <- readShapePoly( fn="tl_2010_36067_tract10", 
+                      proj4string=CRS("+proj=longlat +datum=WGS84") )
+
+#add census information to homes
+houses.census <- merge(houses.data, dat.census, by.x = "GEOID10", by.y = "GEOID")
+
+#get crimes
+crimes <- read.csv( "https://raw.githubusercontent.com/lecy/hedonic-prices/master/Data/crime.lat.lon.csv", stringsAsFactors = F)
+
+#aggregate crimes by census tract
+crimes_SP <- SpatialPoints(crimes, proj4string=CRS("+proj=longlat +datum=WGS84") )
+crimes.matched <- over(crimes_SP, syr)
+houses.data <- cbind( houses.data, crimes.matched)
+crimes.matched <- as.data.frame( table( crimes.matched$GEOID ) )
+names(crimes.matched) <- c("GEOID","CRIME_COUNT")
+
+#add crime data to dataset
+houses.census.crime <- houses.census <- merge(houses.census, crimes.matched, by.x = "GEOID10", by.y = "GEOID")
 ```
 
