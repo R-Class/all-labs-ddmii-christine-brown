@@ -106,5 +106,5 @@ crimes.matched <- as.data.frame( table( crimes.matched$GEOID ) )
 names(crimes.matched) <- c("GEOID","CRIME_COUNT")
 
 #add crime data to dataset
-houses.census.crime <- houses.census <- merge(houses.census, crimes.matched, by.x = "GEOID10", by.y = "GEOID")
+houses.census.crime <- merge(houses.census, crimes.matched, by.x = "GEOID10", by.y = "GEOID")
 ```
