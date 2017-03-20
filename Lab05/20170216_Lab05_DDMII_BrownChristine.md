@@ -87,14 +87,9 @@ names(dat.census) <- c( "state", "county", "tract", "total_pop", "med_hh_inc",
 dat.census <- mutate( dat.census, GEOID=paste( state, county, tract, sep="" ) )
 
 #load spatial data
-download.file("ftp://ftp2.census.gov/geo/tiger/TIGER2010/TRACT/2010/tl_2010_36067_tract10.zip", "onondaga census tracts.zip" )
-unzip( "onondaga census tracts.zip" )
-file.remove( "onondaga census tracts.zip" )
-```
-
-    ## [1] TRUE
-
-``` r
+#download.file("ftp://ftp2.census.gov/geo/tiger/TIGER2010/TRACT/2010/tl_2010_36067_tract10.zip", "onondaga census tracts.zip" )
+#unzip( "onondaga census tracts.zip" )
+#file.remove( "onondaga census tracts.zip" )
 syr <- readShapePoly( fn="tl_2010_36067_tract10", 
                       proj4string=CRS("+proj=longlat +datum=WGS84") )
 
