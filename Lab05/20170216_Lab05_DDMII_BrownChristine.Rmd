@@ -11,7 +11,7 @@ knitr::opts_chunk$set(echo = TRUE,  warning = F , message = F)
 
 ###Load Packages
 ```{r}
-setwd("C:/Users/brown/Documents/Grad School/Fall 16/DDMII/lab5")
+setwd("C:/Users/brown/Documents/Grad School/Fall 16/DDMII/all-labs-ddmii-christine-brown/Lab05")
 library( censusapi )
 library( dplyr )
 library( ggmap )
@@ -24,7 +24,7 @@ library( sp )
 censuskey <- "5a1a01fa6496e71097aa2d4a066bed72117c8069"
 ```
 
-###Get Data
+###Assignment
 ```{r}
 #Get Data
 home.val <- read.csv("https://raw.githubusercontent.com/lecy/hedonic-prices/master/Data/Housing%20Price%20In-Class%20Exercise%20(Responses).csv", stringsAsFactors=FALSE)
@@ -59,12 +59,17 @@ home.val$address <- gsub(",", " ", home.val$address)
 home.val <- mutate(home.val, full_address=paste(address,", Syracuse, NY"))
 
 #geocode
-coordinates <- suppressMessages(geocode( home.val$full_address, messaging=F ))
+#coordinates <- suppressMessages(geocode( home.val$full_address, messaging=F ))
+#write.csv(coordinates, file = "coordinates.csv", row.names=FALSE)
+coordinates <- read.csv("coordinates.csv", stringsAsFactors=FALSE)
 
 #add geocode information to dataframe
 home.val2 <- cbind(home.val, coordinates)
 
 #get census tract information
+#download.file("ftp://ftp2.census.gov/geo/tiger/TIGER2010/TRACT/2010/tl_2010_36067_tract10.zip", "onondaga census tracts.zip" )
+#unzip( "onondaga census tracts.zip" )
+#file.remove( "onondaga census tracts.zip" )
 onondaga <- readShapePoly( fn="tl_2010_36067_tract10", proj4string=CRS("+proj=longlat +datum=WGS84") )
 
 #join census tract inforamtion with homes
@@ -101,7 +106,6 @@ crimes <- read.csv( "https://raw.githubusercontent.com/lecy/hedonic-prices/maste
 #aggregate crimes by census tract
 crimes_SP <- SpatialPoints(crimes, proj4string=CRS("+proj=longlat +datum=WGS84") )
 crimes.matched <- over(crimes_SP, syr)
-houses.data <- cbind( houses.data, crimes.matched)
 crimes.matched <- as.data.frame( table( crimes.matched$GEOID ) )
 names(crimes.matched) <- c("GEOID","CRIME_COUNT")
 
