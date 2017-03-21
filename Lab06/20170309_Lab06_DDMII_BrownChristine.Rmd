@@ -9,8 +9,25 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE,  warning = F , message = F)
 ```
 
+Part 1:
+(1)	Download the Tiger shapefiles for Onondaga County census tracts and primary and secondary roads (see attached). Plot both together, highlighting interstates.
+(2)	Clip the roads shapefile so that it is the same size as the census tracts shapefile.
+(3)	Extract the interstates as a separate layer (subset function).
+(4)	Create a buffer of approximately a quarter mile (eyeball this) from the interstate, and identify all houses that fall within this zone. 
+(5)	Add a new categorical variable to the houses dataset that indicates whether it falls within the buffer zone or not. 
+
+Part 2:
+Using the Syracuse parcel file:
+(1)	Create a buffer a quarter mile from industrial zones (LandUse).  Create a plot to highlight your buffer zone.
+(2)	Identify houses within the buffer zone and create a categorical variable in the dataset indicating proximity to industrial zones.
+(3)	Create a buffer zone an eighth of a mile from schools. Create a plot go highlight these buffer zones.
+(4)	Identify houses within the buffer zone and create a categorical variable in the dataset indicating proximity to schools.
+
+
+
 ```{r}
 #Load Packages
+library( maps )
 library( maptools )
 library( raster )
 library( rgeos )
@@ -28,6 +45,7 @@ setwd( "./shapefiles" )
 
 #Load Onondaga Data in Environment
 ono_tracts <- readShapePoly( fn="tl_2010_36067_tract10", proj4string=CRS("+proj=longlat +datum=WGS84") )
+syr <- ono_tracts[as.numeric(as.character(ono_tracts$NAME10)) < 62, ]
 
 #Download Road Data
 ##download.file("ftp://ftp2.census.gov/geo/tiger/TIGER2015/PRISECROADS/tl_2015_36_prisecroads.zip", "roads.zip" )
@@ -39,31 +57,24 @@ roads <- readShapeLines( fn="tl_2015_36_prisecroads", proj4string=CRS("+proj=lon
 
 #Subset Interstates
 interstate <- roads[ roads$RTTYP == "I" , ]
+noninterstate <- roads[ roads$RTTYP != "I" , ]
 
-#Get Bounding Box
-b <‐ bbox(ono_tracts)
+#Clip Roads
+interstate_clipped <- gIntersection(syr, interstate, byid = TRUE, drop_lower_td = TRUE) #clip interstate with syr
+noninterstate_clipped <- gIntersection(syr, noninterstate, byid = TRUE, drop_lower_td = TRUE) #clip noninterstate with syr
 
-#Create Clipping Function
-gClip <‐ function(shp, bb){
-if(class(bb) == "matrix") b_poly <‐ as(extent(as.vector(t(bb))), "SpatialPolygons")
-else b_poly <‐ as(extent(bb), "SpatialPolygons")
-gIntersection(shp, b_poly, byid = T)
-}
-
-#Clip Elements to be Plotted
-ono_tracts_clipped <‐ gClip(ono_tracts, b)
-roads_clipped <‐ gClip(roads, b)
-interstate_clipped <‐ gClip(interstate, b)
-
-#Plot Data
+#Plot Tracts and Roads
 par( mar=c(0,0,0,0) )
-plot( ono_tracts,  border="gray80" )
-plot(roads_clipped, col="steelblue", lwd=1.25, add=T)
-plot( interstate_clipped, col="red", lwd=1.75, add=T )
+plot(syr, border="gray80")
+plot(noninterstate_clipped, col = "steelblue", lwd=1.25, add=T)
+plot(interstate_clipped, col = "firebrick", lwd=1.75, add=T)
+
+#Add Scale
+map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5 )
 
 #Create Buffer
-buff1 <- gBuffer( interstate, width=.005, byid=T )
+buff1 <- gBuffer( interstate_clipped, width=.005, byid=T )
 buff1 <- gUnaryUnion( buff1, id = NULL )
-buff1_clipped <- gClip(buff1, b)
-plot(buff1_clipped, border="indianred", lwd=.5, add=T)
+buff1_clipped <- gIntersection(syr, buff1)
+plot(buff1_clipped, col=rgb(150,50,50,50,maxColorValue=255),add=T, border=F)
 ```
