@@ -111,4 +111,7 @@ names(crimes.matched) <- c("GEOID","CRIME_COUNT")
 
 #add crime data to dataset
 houses.census.crime <- merge(houses.census, crimes.matched, by.x = "GEOID10", by.y = "GEOID")
+
+#save to csv
+write.csv(houses.census.crime, file = "houses.census.crime.csv", row.names=FALSE)
 ```
