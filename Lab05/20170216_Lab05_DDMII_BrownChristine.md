@@ -46,6 +46,8 @@ home.val$address <- gsub(", Syracuse, NY 13205", "", home.val$address)
 home.val$address <- gsub(", Syracuse, NY 13206", "", home.val$address)
 home.val$address <- gsub(", Syracuse, NY 13208", "", home.val$address)
 home.val$address <- gsub(", Syracuse, NY 13210", "", home.val$address)
+home.val$address <- gsub("245 Dale St # 47", "245 Dale St", home.val$address)
+home.val$address <- gsub("154 Reed Ave # 56", "154 Reed Ave", home.val$address)
 home.val$address <- gsub(", Syracuse, NY", "", home.val$address)
 home.val$address <- gsub(" Syracuse, NY", "", home.val$address)
 home.val$address <- gsub(",", " ", home.val$address)
@@ -107,4 +109,7 @@ names(crimes.matched) <- c("GEOID","CRIME_COUNT")
 
 #add crime data to dataset
 houses.census.crime <- merge(houses.census, crimes.matched, by.x = "GEOID10", by.y = "GEOID")
+
+#save to csv
+write.csv(houses.census.crime, file = "houses.census.crime.csv", row.names=FALSE)
 ```
