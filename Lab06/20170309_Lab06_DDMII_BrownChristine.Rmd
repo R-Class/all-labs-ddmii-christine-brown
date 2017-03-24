@@ -9,15 +9,7 @@ output: github_document
 knitr::opts_chunk$set(echo = TRUE,  warning = F , message = F)
 ```
 
-Part 2:
-Using the Syracuse parcel file:
-(1)	Create a buffer a quarter mile from industrial zones (LandUse).  Create a plot to highlight your buffer zone.
-(2)	Identify houses within the buffer zone and create a categorical variable in the dataset indicating proximity to industrial zones.
-(3)	Create a buffer zone an eighth of a mile from schools. Create a plot go highlight these buffer zones.
-(4)	Identify houses within the buffer zone and create a categorical variable in the dataset indicating proximity to schools.
-
-
-
+Set-Up
 ```{r}
 #Load Packages
 library( dplyr )
@@ -28,12 +20,14 @@ library( raster )
 library( rgdal )
 library( rgeos )
 library( sp )
-```
-Part I
-```{r}
+
 #Prepare Working Directory
 setwd("C:/Users/brown/Documents/Grad School/Fall 16/DDMII/all-labs-ddmii-christine-brown/Lab06")
 
+```
+
+Part I
+```{r}
 #Download Onondaga Data
 ##download.file("ftp://ftp2.census.gov/geo/tiger/TIGER2010/TRACT/2010/tl_2010_36067_tract10.zip", "onondaga_census_tracts.zip" )
 ##unzip( "onondaga_census_tracts.zip" )
@@ -53,11 +47,9 @@ roads <- readShapeLines( fn="tl_2015_36_prisecroads", proj4string=CRS("+proj=lon
 
 #Subset Interstates
 interstate <- roads[ roads$RTTYP == "I" , ]
-noninterstate <- roads[ roads$RTTYP != "I" , ]
 
 #Clip Roads
 interstate_clipped <- gIntersection(syr, interstate, byid = TRUE, drop_lower_td = TRUE) #clip interstate with syr
-noninterstate_clipped <- gIntersection(syr, noninterstate, byid = TRUE, drop_lower_td = TRUE) #clip noninterstate with syr
 
 #Create Buffer
 buff1 <- gBuffer( interstate_clipped, width=.005, byid=T )
@@ -76,18 +68,23 @@ highway.zone <- as.data.frame(highway.zone)
 houses <- cbind(houses, highway.zone)
 
 #Plot Tracts, Roads, Buffer, and Houses
-par( mar=c(0,0,0,0) )
-plot(syr, border="gray80")
-plot(noninterstate_clipped, col = "mediumpurple3", lwd=1.25, add=T)
-plot(interstate_clipped, col = "firebrick", lwd=1.75, add=T)
-plot(buff1_clipped, col=rgb(150,50,50,20,maxColorValue=255),add=T, border=F)
-points(coordinates_SP[houses$highway.zone==0], pch=20, cex=.6)
-points(coordinates_SP[houses$highway.zone==1], col="firebrick", pch=20, cex=.6)
+par( mar=c(.6,0,.6,0) )
+plot(syr, col="gray90", border="white", main="Homes in Highway Zone (1/2 mile radius from Highway)")
+plot(interstate_clipped, col = "#dd7804", lwd=1.75, add=T)
+plot(buff1_clipped, col=rgb(221, 120, 4,30,maxColorValue=255),add=T, border=F)
+points(coordinates_SP[houses$highway.zone==0], pch=20, cex=.9, col="gray60")
+points(coordinates_SP[houses$highway.zone==1], col="#c10101", pch=20, cex=.9)
 
+#Add Legend
+legend( 'bottomright', pch=20, pt.cex=1.4, cex=.8, xpd=NA, bty="n", inset=-.01,
+        legend=c("Highway", "Highway Zone", "House in Zone", "House Outside of Zone"), 
+        col=c("#dd7804",rgb( 221, 120, 4,50, maxColorValue=255), "gray60", "#c10101"))
 #Add Scale
-map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5 )
+map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5, y=-2, x=0 )
 
 ```
+
+
 Part II
 ```{r}
 #load shapefiles
@@ -109,10 +106,47 @@ industrial.zone <- as.data.frame(industrial.zone)
 houses <- cbind(houses, industrial.zone)
 
 #plot industrial zone map with data
-plot(syr_parcels, border=F, col="gray90" )
+par( mar=c(.4,0,.6,0) )
+plot(syr_parcels, border=F, col="gray90", main="Homes in Industrial Zone (1/4 mile radius from Industrial Parcel)" )
 plot(industrial, border=F, col="#e2a409", add=T)
 plot(buff2_clipped, col=rgb( 226, 164, 9, 40, maxColorValue=255), border=F, add=T)
 map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5 )
-points(coordinates_SP[houses$industrial.zone==0], col="gray70", pch=20, cex=1)
-points(coordinates_SP[houses$industrial.zone==1], col="gray50", pch=20, cex=1)
+points(coordinates_SP[houses$industrial.zone==0], col="gray60", pch=20, cex=.9)
+points(coordinates_SP[houses$industrial.zone==1], col="#c10101", pch=20, cex=.9)
+
+#Add Legend
+legend( 'bottomright', pch=20, pt.cex=1.4, cex=.8, xpd=NA, bty="n", inset=-.01, 
+        legend=c("Industrial Parcel", "Industrial Zone", "House in Zone", "House Outside of Zone"), 
+        col=c("#e2a409",rgb( 226, 164, 9, 40, maxColorValue=255), "gray60", "#c10101"))
+map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5 )
+
+
+#identify school parcels
+school <- syr_parcels[syr_parcels$LandUse == "Schools",]
+
+#create school buffer
+buff3 <- gBuffer( school, width=.0018, byid=F )
+buff3_clipped <- gIntersection(syr_parcels, buff3)
+buff3_clipped_proj <- spTransform( buff3_clipped, CRS( "+proj=longlat +datum=WGS84" ) )
+
+#find data in school buffer zone and record in dataframe
+school.zone <- over(coordinates_SP, buff3_clipped_proj )
+school.zone[is.na(school.zone)] <- 0
+school.zone <- as.data.frame(school.zone)
+houses <- cbind(houses, school.zone)
+
+#plot school zone map with data
+par( mar=c(.4,0,.6,0) )
+plot(syr_parcels, border=F, col="gray90", main="Homes in School Zone (1/8 mile radius from Schools)" )
+plot(school, border=F, col="#316dce", add=T)
+plot(buff3_clipped, col=rgb( 49, 109, 206, 60, maxColorValue=255), border=F, add=T)
+map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5 )
+points(coordinates_SP[houses$school.zone==0], col="gray60", pch=20, cex=.9)
+points(coordinates_SP[houses$school.zone==1], col="#c10101", pch=20, cex=.9)
+
+#Add Legend
+legend( 'bottomright', pch=20, pt.cex=1.4, cex=.8, xpd=NA, bty="n", inset=-.01,
+        legend=c("School Parcel", "School Zone", "House in Zone", "House Outside of Zone"), 
+        col=c("#316dce",rgb( 49, 109, 206, 60, maxColorValue=255), "gray60", "#c10101"))
+map.scale( metric=F, ratio=F, relwidth = 0.1, cex=.5 )
 ```
